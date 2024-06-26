@@ -1,30 +1,8 @@
-/*
- * This file is part of Beekeeping Management.
- *
- * Beekeeping Management is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Beekeeping Management is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Beekeeping Management. If not, see <http://www.gnu.org/licenses/>.
- *
- * Author: Mihael Josifovski
- * Copyright 2024 Mihael Josifovski
- */
-
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:beekeeping_management/models/hive.dart';
 import 'package:beekeeping_management/providers/hive_provider.dart';
 import 'package:beekeeping_management/providers/task_provider.dart';
-
 import 'hive_detail_screen.dart';
 
 class HiveScreen extends StatefulWidget {
@@ -37,35 +15,50 @@ class _HiveScreenState extends State<HiveScreen> {
   final _numberController = TextEditingController();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  String searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Hives'),
+        title: Text('Сандуци'),
       ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
             DrawerHeader(
-              child: Text('Beekeeping Management', style: TextStyle(color: Colors.white, fontSize: 24)),
+              child: Text('Beekeeping Management'),
               decoration: BoxDecoration(
-                color: Colors.green,
+                color: Colors.yellow,
               ),
             ),
             ListTile(
+              leading: Icon(Icons.dashboard),
+              title: Text('Контролна Табла'),
+              onTap: () {
+                Navigator.pushNamed(context, '/dashboard');
+              },
+            ),
+            ListTile(
               leading: Icon(Icons.assignment),
-              title: Text('Tasks'),
+              title: Text('Работни Задачи'),
               onTap: () {
                 Navigator.pushNamed(context, '/tasks');
               },
             ),
             ListTile(
               leading: Icon(Icons.label),
-              title: Text('Tags'),
+              title: Text('Категории'),
               onTap: () {
                 Navigator.pushNamed(context, '/tags');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.api),
+              title: Text('Сандуци'),
+              onTap: () {
+                Navigator.pushNamed(context, '/');
               },
             ),
           ],
@@ -73,17 +66,36 @@ class _HiveScreenState extends State<HiveScreen> {
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: InputDecoration(
+                labelText: 'Пребарај сандук',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+              },
+            ),
+          ),
           Expanded(
             child: Consumer2<HiveProvider, TaskProvider>(
               builder: (context, hiveProvider, taskProvider, child) {
+                final filteredHives = hiveProvider.hives.where((hive) {
+                  return hive.number.toString().contains(searchQuery);
+                }).toList();
+
                 return ListView.builder(
-                  itemCount: hiveProvider.hives.length,
+                  itemCount: filteredHives.length,
                   itemBuilder: (context, index) {
-                    final hive = hiveProvider.hives[index];
+                    final hive = filteredHives[index];
                     final tasksForToday = taskProvider.tasks.where((task) =>
                     task.hiveId == hive.id &&
                         (task.dueDate.isAtSameMomentAs(DateTime.now()) ||
-                            task.dueDate.isBefore(DateTime.now()) && !task.completed));
+                            (task.dueDate.isBefore(DateTime.now()) && !task.completed))).toList();
                     final color = tasksForToday.isNotEmpty ? Colors.red : Colors.green;
 
                     return GestureDetector(
@@ -95,24 +107,26 @@ class _HiveScreenState extends State<HiveScreen> {
                           ),
                         );
                       },
-                      child: Card(
-                        elevation: 4,
-                        margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                      child: Container(
+                        margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                         child: Row(
                           children: [
                             Container(
                               width: 10,
-                              height: 70,
+                              height: 50,
                               color: color,
                             ),
                             SizedBox(width: 10),
                             Expanded(
                               child: Container(
-                                padding: EdgeInsets.all(16),
-                                child: Text('Box ${hive.number}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                padding: EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Center(
+                                  child: Text('Сандук ${hive.number}', style: TextStyle(fontSize: 16)),
+                                ),
                               ),
                             ),
                           ],
@@ -132,39 +146,28 @@ class _HiveScreenState extends State<HiveScreen> {
                 children: [
                   TextFormField(
                     controller: _numberController,
-                    decoration: InputDecoration(
-                      labelText: 'Hive Number',
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: InputDecoration(labelText: 'Број на сандук'),
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a hive number';
+                        return 'Внеси број на сандук';
                       }
                       return null;
                     },
                   ),
-                  SizedBox(height: 10),
                   TextFormField(
                     controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Hive Name',
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: InputDecoration(labelText: 'Внеси име на сандук'),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a hive name';
+                        return 'Имен на сандук';
                       }
                       return null;
                     },
                   ),
-                  SizedBox(height: 10),
                   TextFormField(
                     controller: _descriptionController,
-                    decoration: InputDecoration(
-                      labelText: 'Description',
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: InputDecoration(labelText: 'Опис'),
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
@@ -175,7 +178,7 @@ class _HiveScreenState extends State<HiveScreen> {
                           number: int.parse(_numberController.text),
                           name: _nameController.text,
                           description: _descriptionController.text,
-                          tasks: [],
+                          tasks: [], // Initialize with an empty list of tasks
                         );
                         Provider.of<HiveProvider>(context, listen: false).addHive(hive);
                         _numberController.clear();
@@ -183,7 +186,7 @@ class _HiveScreenState extends State<HiveScreen> {
                         _descriptionController.clear();
                       }
                     },
-                    child: Text('Add Hive'),
+                    child: Text('Додај Сандук'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.yellow,
                       shape: RoundedRectangleBorder(

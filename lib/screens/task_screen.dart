@@ -1,24 +1,3 @@
-/*
- * This file is part of Beekeeping Management.
- *
- * Beekeeping Management is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Beekeeping Management is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Beekeeping Management. If not, see <http://www.gnu.org/licenses/>.
- *
- * Author: Mihael Josifovski
- * Copyright 2024 Mihael Josifovski
- */
-
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:beekeeping_management/models/task.dart';
@@ -40,11 +19,187 @@ class _TaskScreenState extends State<TaskScreen> {
   int? _selectedHiveId;
   int? _selectedTagId;
 
+  void _editTask(BuildContext context, Task task) {
+    final _editTitleController = TextEditingController(text: task.title);
+    final _editDescriptionController = TextEditingController(text: task.description);
+    final _editDueDateController = TextEditingController(text: task.dueDate.toIso8601String());
+    int? _editSelectedHiveId = task.hiveId;
+    int? _editSelectedTagId = task.tagId;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Промени Задача'),
+          content: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _editTitleController,
+                    decoration: InputDecoration(
+                      labelText: 'Наслов на работната задача',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Внеси наслов на работната задача';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: _editDescriptionController,
+                    decoration: InputDecoration(
+                      labelText: 'Опис',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: _editDueDateController,
+                    decoration: InputDecoration(
+                      labelText: 'Краен рок',
+                      border: OutlineInputBorder(),
+                    ),
+                    onTap: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                      );
+                      if (pickedDate != null) {
+                        _editDueDateController.text = pickedDate.toIso8601String();
+                      }
+                    },
+                  ),
+                  SizedBox(height: 10),
+                  Consumer<HiveProvider>(
+                    builder: (context, hiveProvider, child) {
+                      return DropdownButtonFormField<int>(
+                        value: _editSelectedHiveId,
+                        decoration: InputDecoration(
+                          labelText: 'Селектирај сандук',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: hiveProvider.hives.map((hive) {
+                          return DropdownMenuItem<int>(
+                            value: hive.id,
+                            child: Text('Сандук ${hive.number}: ${hive.name}'),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _editSelectedHiveId = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null) {
+                            return 'Селектирај сандук';
+                          }
+                          return null;
+                        },
+                      );
+                    },
+                  ),
+                  SizedBox(height: 10),
+                  Consumer<TagProvider>(
+                    builder: (context, tagProvider, child) {
+                      return DropdownButtonFormField<int>(
+                        value: _editSelectedTagId,
+                        decoration: InputDecoration(
+                          labelText: 'Селектирај категорија',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: tagProvider.tags.map((tag) {
+                          return DropdownMenuItem<int>(
+                            value: tag.id,
+                            child: Text(tag.name),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _editSelectedTagId = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null) {
+                            return 'Селектирај категорија';
+                          }
+                          return null;
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Откажи'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  final updatedTask = Task(
+                    id: task.id,
+                    title: _editTitleController.text,
+                    description: _editDescriptionController.text,
+                    dueDate: DateTime.parse(_editDueDateController.text),
+                    hiveId: _editSelectedHiveId!,
+                    tagId: _editSelectedTagId,
+                  );
+                  Provider.of<TaskProvider>(context, listen: false).updateTask(updatedTask);
+                  Navigator.pop(context);
+                }
+              },
+              child: Text('Промени'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _confirmDelete(BuildContext context, int taskId) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Избриши Задача'),
+          content: Text('Дали сте сигурни дека сакате да ја избришете задачата?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Откажи'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Provider.of<TaskProvider>(context, listen: false).deleteTask(taskId as Task);
+                Navigator.pop(context);
+              },
+              child: Text('Избриши'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tasks'),
+        title: Text('Работни Задачи'),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
@@ -69,7 +224,23 @@ class _TaskScreenState extends State<TaskScreen> {
                       ),
                       child: ListTile(
                         title: Text(task.title, style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(task.dueDate.toIso8601String()),
+                        subtitle: Text(
+                          '${task.description ?? ''}\nDue: ${task.dueDate.toIso8601String()}',
+                          style: TextStyle(color: Colors.grey[700]),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () => _editTask(context, task),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _confirmDelete(context, task.id),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -86,12 +257,12 @@ class _TaskScreenState extends State<TaskScreen> {
                   TextFormField(
                     controller: _titleController,
                     decoration: InputDecoration(
-                      labelText: 'Task Title',
+                      labelText: 'Наслов на работната задача',
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a task title';
+                        return 'Внеси наслов на работната задача';
                       }
                       return null;
                     },
@@ -100,7 +271,7 @@ class _TaskScreenState extends State<TaskScreen> {
                   TextFormField(
                     controller: _descriptionController,
                     decoration: InputDecoration(
-                      labelText: 'Description',
+                      labelText: 'Опис',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -108,7 +279,7 @@ class _TaskScreenState extends State<TaskScreen> {
                   TextFormField(
                     controller: _dueDateController,
                     decoration: InputDecoration(
-                      labelText: 'Due Date',
+                      labelText: 'Краен рок',
                       border: OutlineInputBorder(),
                     ),
                     onTap: () async {
@@ -129,13 +300,13 @@ class _TaskScreenState extends State<TaskScreen> {
                       return DropdownButtonFormField<int>(
                         value: _selectedHiveId,
                         decoration: InputDecoration(
-                          labelText: 'Select Hive',
+                          labelText: 'Селектирај сандук',
                           border: OutlineInputBorder(),
                         ),
                         items: hiveProvider.hives.map((hive) {
                           return DropdownMenuItem<int>(
                             value: hive.id,
-                            child: Text('Box ${hive.number}: ${hive.name}'),
+                            child: Text('Сандук ${hive.number}: ${hive.name}'),
                           );
                         }).toList(),
                         onChanged: (value) {
@@ -145,7 +316,7 @@ class _TaskScreenState extends State<TaskScreen> {
                         },
                         validator: (value) {
                           if (value == null) {
-                            return 'Please select a hive';
+                            return 'Селектирај сандук';
                           }
                           return null;
                         },
@@ -158,7 +329,7 @@ class _TaskScreenState extends State<TaskScreen> {
                       return DropdownButtonFormField<int>(
                         value: _selectedTagId,
                         decoration: InputDecoration(
-                          labelText: 'Select Tag',
+                          labelText: 'Селектирај категорија',
                           border: OutlineInputBorder(),
                         ),
                         items: tagProvider.tags.map((tag) {
@@ -174,7 +345,7 @@ class _TaskScreenState extends State<TaskScreen> {
                         },
                         validator: (value) {
                           if (value == null) {
-                            return 'Please select a tag';
+                            return 'Селектирај категорија';
                           }
                           return null;
                         },
@@ -187,7 +358,7 @@ class _TaskScreenState extends State<TaskScreen> {
                       if (_formKey.currentState!.validate()) {
                         if (_selectedHiveId == null) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('Please select a hive'),
+                            content: Text('Селектирај сандук'),
                             backgroundColor: Colors.red,
                           ));
                           return;
@@ -211,7 +382,7 @@ class _TaskScreenState extends State<TaskScreen> {
                         });
                       }
                     },
-                    child: Text('Add Task'),
+                    child: Text('Додади задача'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.yellow,
                       shape: RoundedRectangleBorder(

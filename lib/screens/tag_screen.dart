@@ -1,24 +1,3 @@
-/*
- * This file is part of Beekeeping Management.
- *
- * Beekeeping Management is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Beekeeping Management is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Beekeeping Management. If not, see <http://www.gnu.org/licenses/>.
- *
- * Author: Mihael Josifovski
- * Copyright 2024 Mihael Josifovski
- */
-
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:beekeeping_management/models/tag.dart';
@@ -33,11 +12,83 @@ class _TagScreenState extends State<TagScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
 
+  void _editTag(BuildContext context, Tag tag) {
+    final _editNameController = TextEditingController(text: tag.name);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Промени Категорија'),
+          content: TextFormField(
+            controller: _editNameController,
+            decoration: InputDecoration(
+              labelText: 'Име на категорија',
+              border: OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Внеси име на категоријата';
+              }
+              return null;
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Откажи'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_editNameController.text.isNotEmpty) {
+                  Provider.of<TagProvider>(context, listen: false).updateTag(
+                    Tag(id: tag.id, name: _editNameController.text),
+                  );
+                  Navigator.pop(context);
+                }
+              },
+              child: Text('Промени'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _confirmDelete(BuildContext context, int tagId) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Избриши Категорија'),
+          content: Text('Дали сте сигурни дека сакате да ја избришете категоријата?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Откажи'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Provider.of<TagProvider>(context, listen: false).deleteTag(tagId as Tag);
+                Navigator.pop(context);
+              },
+              child: Text('Избриши'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tags'),
+        title: Text('Категории'),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
@@ -62,6 +113,19 @@ class _TagScreenState extends State<TagScreen> {
                       ),
                       child: ListTile(
                         title: Text(tag.name, style: TextStyle(fontWeight: FontWeight.bold)),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () => _editTag(context, tag),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _confirmDelete(context, tag.id),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -78,12 +142,12 @@ class _TagScreenState extends State<TagScreen> {
                   TextFormField(
                     controller: _nameController,
                     decoration: InputDecoration(
-                      labelText: 'Tag Name',
+                      labelText: 'Име на категорија',
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a tag name';
+                        return 'Внеси име на категоријата';
                       }
                       return null;
                     },
@@ -100,7 +164,7 @@ class _TagScreenState extends State<TagScreen> {
                         _nameController.clear();
                       }
                     },
-                    child: Text('Add Tag'),
+                    child: Text('Додај Категорија'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.yellow,
                       shape: RoundedRectangleBorder(

@@ -1,24 +1,3 @@
-/*
- * This file is part of Beekeeping Management.
- *
- * Beekeeping Management is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Beekeeping Management is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Beekeeping Management. If not, see <http://www.gnu.org/licenses/>.
- *
- * Author: Mihael Josifovski
- * Copyright 2024 Mihael Josifovski
- */
-
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:beekeeping_management/models/hive.dart';
@@ -41,23 +20,26 @@ class HiveDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Hive ${hive.number} Details'),
+        title: Text('Сандук ${hive.number} Детали'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Name: ${hive.name}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Text('Description: ${hive.description}', style: TextStyle(fontSize: 18)),
-            SizedBox(height: 16),
-            Text('Tasks:', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            Expanded(
-              child: Consumer<TaskProvider>(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Име: ${hive.name}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              SizedBox(height: 8),
+              Text('Опис: ${hive.description}', style: TextStyle(fontSize: 18)),
+              SizedBox(height: 16),
+              Text('Работни Задачи:', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              SizedBox(height: 16),
+              Consumer<TaskProvider>(
                 builder: (context, taskProvider, child) {
                   final hiveTasks = taskProvider.tasks.where((task) => task.hiveId == hive.id).toList();
                   return ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
                     itemCount: hiveTasks.length,
                     itemBuilder: (context, index) {
                       final task = hiveTasks[index];
@@ -76,22 +58,20 @@ class HiveDetailScreen extends StatelessWidget {
                   );
                 },
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
+              SizedBox(height: 16),
+              Form(
                 key: _formKey,
                 child: Column(
                   children: [
                     TextFormField(
                       controller: _taskTitleController,
                       decoration: InputDecoration(
-                        labelText: 'Task Title',
+                        labelText: 'Наслов на работната задача',
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter a task title';
+                          return 'Внеси наслов на работната задача';
                         }
                         return null;
                       },
@@ -100,7 +80,7 @@ class HiveDetailScreen extends StatelessWidget {
                     TextFormField(
                       controller: _taskDescriptionController,
                       decoration: InputDecoration(
-                        labelText: 'Description',
+                        labelText: 'Опис',
                         border: OutlineInputBorder(),
                       ),
                     ),
@@ -108,7 +88,7 @@ class HiveDetailScreen extends StatelessWidget {
                     TextFormField(
                       controller: _taskDueDateController,
                       decoration: InputDecoration(
-                        labelText: 'Due Date',
+                        labelText: 'Датум',
                         border: OutlineInputBorder(),
                       ),
                       onTap: () async {
@@ -129,7 +109,7 @@ class HiveDetailScreen extends StatelessWidget {
                         return DropdownButtonFormField<int>(
                           value: _selectedTagId,
                           decoration: InputDecoration(
-                            labelText: 'Select Tag',
+                            labelText: 'Селектирај категорија',
                             border: OutlineInputBorder(),
                           ),
                           items: tagProvider.tags.map((tag) {
@@ -143,7 +123,7 @@ class HiveDetailScreen extends StatelessWidget {
                           },
                           validator: (value) {
                             if (value == null) {
-                              return 'Please select a tag';
+                              return 'Селектирај категорија';
                             }
                             return null;
                           },
@@ -166,12 +146,12 @@ class HiveDetailScreen extends StatelessWidget {
                           _taskTitleController.clear();
                           _taskDescriptionController.clear();
                           _taskDueDateController.clear();
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Task added')));
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Успешно додадена категорија!')));
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please select a due date')));
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Селектирај датум на краен рок за извршеток на задачата')));
                         }
                       },
-                      child: Text('Add Task'),
+                      child: Text('Додади Задача'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.yellow,
                         shape: RoundedRectangleBorder(
@@ -183,8 +163,8 @@ class HiveDetailScreen extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
