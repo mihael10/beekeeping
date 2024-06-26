@@ -18,6 +18,10 @@ The Beekeeping Management App is designed to help beekeepers efficiently manage 
 ## Screenshots
 
 <!-- Add screenshots of your app here -->
+![Screenshot from 2024-06-26 19-47-29](https://github.com/mihael10/beekeeping/assets/95184489/24920e33-665d-46b1-b369-983ada2277be)
+![Screenshot from 2024-06-26 19-47-18](https://github.com/mihael10/beekeeping/assets/95184489/a8d49f6f-8e2b-44c2-bde2-f899f287eae7)
+![Screenshot from 2024-06-26 19-47-07](https://github.com/mihael10/beekeeping/assets/95184489/b45fb29a-6d7d-402a-a1f8-4b6a7f21895c)
+![Screenshot from 2024-06-26 19-46-57](https://github.com/mihael10/beekeeping/assets/95184489/3a991ed3-3881-4a93-b09e-4d910ddca455)
 
 
 ## Installation
