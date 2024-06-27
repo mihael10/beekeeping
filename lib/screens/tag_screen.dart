@@ -11,6 +11,7 @@ class TagScreen extends StatefulWidget {
 class _TagScreenState extends State<TagScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  bool _isAddingTag = false;
 
   void _editTag(BuildContext context, Tag tag) {
     final _editNameController = TextEditingController(text: tag.name);
@@ -133,50 +134,67 @@ class _TagScreenState extends State<TagScreen> {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Име на категорија',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Внеси име на категоријата';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        final tag = Tag(
-                          id: DateTime.now().millisecondsSinceEpoch,
-                          name: _nameController.text,
-                        );
-                        Provider.of<TagProvider>(context, listen: false).addTag(tag);
-                        _nameController.clear();
-                      }
-                    },
-                    child: Text('Додај Категорија'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.yellow,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+          if (_isAddingTag)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Име на категорија',
+                        border: OutlineInputBorder(),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Внеси име на категоријата';
+                        }
+                        return null;
+                      },
                     ),
-                  ),
-                ],
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          final tag = Tag(
+                            id: DateTime.now().millisecondsSinceEpoch,
+                            name: _nameController.text,
+                          );
+                          Provider.of<TagProvider>(context, listen: false).addTag(tag);
+                          _nameController.clear();
+                          setState(() {
+                            _isAddingTag = false;
+                          });
+                        }
+                      },
+                      child: Text('Додај Категорија'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.yellow,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: FloatingActionButton(
+                onPressed: () {
+                  setState(() {
+                    _isAddingTag = true;
+                  });
+                },
+                backgroundColor: Colors.yellow,
+                child: Icon(Icons.add, color: Colors.white),
               ),
             ),
-          ),
         ],
       ),
     );

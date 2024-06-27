@@ -1,10 +1,10 @@
 class Task {
   final int id;
-  final String title;
-  final String? description;
-  final DateTime dueDate;
-  final int hiveId;
-  final int? tagId;
+  late final String title;
+  late final String? description;
+  late final DateTime dueDate;
+  late final int hiveId;
+  late final int? tagId;
   final bool completed;
 
   Task({

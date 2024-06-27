@@ -11,10 +11,6 @@ class HiveScreen extends StatefulWidget {
 }
 
 class _HiveScreenState extends State<HiveScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _numberController = TextEditingController();
-  final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
   String searchQuery = '';
 
   @override
@@ -28,7 +24,10 @@ class _HiveScreenState extends State<HiveScreen> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             DrawerHeader(
-              child: Text('Beekeeping Management'),
+              child: Text(
+                'Улишта',
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
               decoration: BoxDecoration(
                 color: Colors.yellow,
               ),
@@ -72,7 +71,9 @@ class _HiveScreenState extends State<HiveScreen> {
               decoration: InputDecoration(
                 labelText: 'Пребарај сандук',
                 prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onChanged: (value) {
                 setState(() {
@@ -88,7 +89,11 @@ class _HiveScreenState extends State<HiveScreen> {
                   return hive.number.toString().contains(searchQuery);
                 }).toList();
 
-                return ListView.builder(
+                return GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, // Number of columns
+                    childAspectRatio: 1, // Ensures the boxes are square
+                  ),
                   itemCount: filteredHives.length,
                   itemBuilder: (context, index) {
                     final hive = filteredHives[index];
@@ -108,26 +113,35 @@ class _HiveScreenState extends State<HiveScreen> {
                         );
                       },
                       child: Container(
-                        margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                        child: Row(
+                        margin: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
                               width: 10,
-                              height: 50,
-                              color: color,
-                            ),
-                            SizedBox(width: 10),
-                            Expanded(
-                              child: Container(
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Center(
-                                  child: Text('Сандук ${hive.number}', style: TextStyle(fontSize: 16)),
-                                ),
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
                               ),
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Сандук ${hive.number}',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
@@ -138,69 +152,121 @@ class _HiveScreenState extends State<HiveScreen> {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  TextFormField(
-                    controller: _numberController,
-                    decoration: InputDecoration(labelText: 'Број на сандук'),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Внеси број на сандук';
-                      }
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(labelText: 'Внеси име на сандук'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Имен на сандук';
-                      }
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    controller: _descriptionController,
-                    decoration: InputDecoration(labelText: 'Опис'),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        final hive = Hive(
-                          id: DateTime.now().millisecondsSinceEpoch,
-                          number: int.parse(_numberController.text),
-                          name: _nameController.text,
-                          description: _descriptionController.text,
-                          tasks: [], // Initialize with an empty list of tasks
-                        );
-                        Provider.of<HiveProvider>(context, listen: false).addHive(hive);
-                        _numberController.clear();
-                        _nameController.clear();
-                        _descriptionController.clear();
-                      }
-                    },
-                    child: Text('Додај Сандук'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.yellow,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddHiveForm(context),
+        child: Icon(Icons.add),
+        backgroundColor: Colors.yellow,
+      ),
+    );
+  }
+
+  void _showAddHiveForm(BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
+    final _numberController = TextEditingController();
+    final _nameController = TextEditingController();
+    final _descriptionController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 16,
+          ),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                Text(
+                  'Додај Сандук',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 20),
+                TextFormField(
+                  controller: _numberController,
+                  decoration: InputDecoration(
+                    labelText: 'Број на сандук',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Внеси број на сандук';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Внеси име на сандук',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Внеси име на сандук';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: InputDecoration(
+                    labelText: 'Опис',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      final hive = Hive(
+                        id: DateTime.now().millisecondsSinceEpoch,
+                        number: int.parse(_numberController.text),
+                        name: _nameController.text,
+                        description: _descriptionController.text,
+                        tasks: [], // Initialize with an empty list of tasks
+                      );
+                      Provider.of<HiveProvider>(context, listen: false).addHive(hive);
+                      _numberController.clear();
+                      _nameController.clear();
+                      _descriptionController.clear();
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: Text('Додај Сандук'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.yellow,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
