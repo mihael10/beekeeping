@@ -4,6 +4,9 @@ import 'package:beekeeping_management/providers/hive_provider.dart';
 import 'package:beekeeping_management/providers/task_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:beekeeping_management/models/task.dart';
+import 'package:beekeeping_management/models/tag.dart';
+
+import '../providers/tag_provider.dart';
 
 class DashboardScreen extends StatelessWidget {
   @override
@@ -51,23 +54,96 @@ class DashboardScreen extends StatelessWidget {
 
                     return Card(
                       margin: EdgeInsets.all(10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      elevation: 4,
                       child: Stack(
                         children: [
                           Padding(
-                            padding: EdgeInsets.all(10),
+                            padding: EdgeInsets.all(15),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Сандук ${hive.number}',
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                Text(
+                                  'Сандук ${hive.number}',
+                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
                                 ...tasksForToday.map((task) => Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                  child: ListTile(
-                                    title: Text(
-                                      '• ${task.title} (Краен рок: ${DateFormat.yMd().add_jm().format(task.dueDate)})\n${task.description ?? ''}',
-                                      style: TextStyle(color: Colors.grey[700]),
+                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Container(
+                                    padding: EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.5),
+                                          spreadRadius: 2,
+                                          blurRadius: 5,
+                                          offset: Offset(0, 3),
+                                        ),
+                                      ],
                                     ),
-                                    onTap: () => _showTaskDetailsDialog(context, task, taskProvider),
+                                    child: ListTile(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      title: Text(
+                                        task.title,
+                                        style: TextStyle(
+                                            color: Colors.grey[800],
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
+                                      ),
+                                      subtitle: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(height: 5),
+                                          Text(
+                                            'Опис:',
+                                            style: TextStyle(
+                                                color: Colors.grey[800],
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14),
+                                          ),
+                                          Text(
+                                            task.description ?? '',
+                                            style: TextStyle(color: Colors.grey[700]),
+                                          ),
+                                          SizedBox(height: 5),
+                                          Text(
+                                            'Краен рок:',
+                                            style: TextStyle(
+                                                color: Colors.grey[800],
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14),
+                                          ),
+                                          Text(
+                                            DateFormat.yMd().add_jm().format(task.dueDate),
+                                            style: TextStyle(color: Colors.grey[700]),
+                                          ),
+                                          SizedBox(height: 5),
+                                          Text(
+                                            'Категорија:',
+                                            style: TextStyle(
+                                                color: Colors.grey[800],
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14),
+                                          ),
+                                          Text(
+                                            Provider.of<TagProvider>(context)
+                                                .tags
+                                                .firstWhere((tag) => tag.id == task.tagId,
+                                                orElse: () => Tag(id: 0, name: 'Без категорија'))
+                                                .name,
+                                            style: TextStyle(color: Colors.grey[700]),
+                                          ),
+                                        ],
+                                      ),
+                                      onTap: () => _showTaskDetailsDialog(context, task, taskProvider),
+                                    ),
                                   ),
                                 )),
                               ],
@@ -102,7 +178,13 @@ class DashboardScreen extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(task.title),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            task.title,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,7 +223,6 @@ class DashboardScreen extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                // Reopen task logic
                 final newTask = Task(
                   id: DateTime.now().millisecondsSinceEpoch,
                   title: task.title,

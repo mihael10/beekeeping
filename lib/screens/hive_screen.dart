@@ -26,7 +26,7 @@ class _HiveScreenState extends State<HiveScreen> {
             DrawerHeader(
               child: Text(
                 'Улишта',
-                style: TextStyle(color: Colors.white, fontSize: 24),
+                style: TextStyle(color: Colors.black, fontSize: 24),
               ),
               decoration: BoxDecoration(
                 color: Colors.yellow,
@@ -115,8 +115,7 @@ class _HiveScreenState extends State<HiveScreen> {
                       child: Container(
                         margin: EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.grey),
+                          color: color,
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
@@ -127,23 +126,15 @@ class _HiveScreenState extends State<HiveScreen> {
                             ),
                           ],
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: color,
-                                shape: BoxShape.circle,
-                              ),
+                        child: Center(
+                          child: Text(
+                            'Сандук ${hive.number}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
-                            SizedBox(height: 10),
-                            Text(
-                              'Сандук ${hive.number}',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     );
